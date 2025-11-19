@@ -1,9 +1,19 @@
 // message actions and components
-import { openImageModal } from "./image_modal.js";
-import { marked } from "../vendor/marked/marked.esm.js";
-import { store as _messageResizeStore } from "/components/messages/resize/message-resize-store.js"; // keep here, required in html
-import { store as attachmentsStore } from "/components/chat/attachments/attachmentsStore.js";
-import { addActionButtonsToElement } from "/components/messages/action-buttons/simple-action-buttons.js";
+import {
+  openImageModal
+} from "./image_modal.js";
+import {
+  marked
+} from "../vendor/marked/marked.esm.js";
+import {
+  store as _messageResizeStore
+} from "/components/messages/resize/message-resize-store.js"; // keep here, required in html
+import {
+  store as attachmentsStore
+} from "/components/chat/attachments/attachmentsStore.js";
+import {
+  addActionButtonsToElement
+} from "/components/messages/action-buttons/simple-action-buttons.js";
 
 const chatHistory = document.getElementById("chat-history");
 
@@ -22,7 +32,7 @@ export function setMessage(id, type, heading, content, temp, kvps = null) {
   } else {
     // Create a new container if not found
     isNewMessage = true;
-    const sender = type === "user" ? "user" : "ai";
+    const sender = type === "user" ? "user": "ai";
     messageContainer = document.createElement("div");
     messageContainer.id = `message-${id}`;
     messageContainer.classList.add("message-container", `${sender}-container`);
@@ -156,11 +166,26 @@ export function _drawMessage(
         minMaxBtn = document.createElement("div");
         minMaxBtn.classList.add("msg-min-max-btns");
         minMaxBtn.innerHTML = `
-          <a href="#" class="msg-min-max-btn" @click.prevent="$store.messageResize.minimizeMessageClass('${mainClass}', $event)"><span class="material-symbols-outlined" x-text="$store.messageResize.getSetting('${mainClass}').minimized ? 'expand_content' : 'minimize'"></span></a>
-          <a href="#" class="msg-min-max-btn" x-show="!$store.messageResize.getSetting('${mainClass}').minimized" @click.prevent="$store.messageResize.maximizeMessageClass('${mainClass}', $event)"><span class="material-symbols-outlined" x-text="$store.messageResize.getSetting('${mainClass}').maximized ? 'expand' : 'expand_all'"></span></a>
+        <a href="#" class="msg-min-max-btn" @click.prevent="$store.messageResize.minimizeMessageClass('${mainClass}', $event)"><span class="material-symbols-outlined" x-text="$store.messageResize.getSetting('${mainClass}').minimized ? 'expand_content' : 'minimize'"></span></a>
+        <a href="#" class="msg-min-max-btn" x-show="!$store.messageResize.getSetting('${mainClass}').minimized" @click.prevent="$store.messageResize.maximizeMessageClass('${mainClass}', $event)"><span class="material-symbols-outlined" x-text="$store.messageResize.getSetting('${mainClass}').maximized ? 'expand' : 'expand_all'"></span></a>
         `;
         headingElement.appendChild(minMaxBtn);
       }
+      // NEUER CODE START
+      let deleteBtn = headingElement.querySelector(".msg-delete-btn");
+      if (!deleteBtn) {
+        deleteBtn = document.createElement("a");
+        deleteBtn.href = "#";
+        deleteBtn.className = "msg-delete-btn";
+        deleteBtn.innerHTML = `<span class="material-symbols-outlined">close</span>`;
+        deleteBtn.onclick = function(event) {
+          event.preventDefault();
+          deleteMessage(messageContainer.id);
+        };
+        // Fügt den Button dem Kopfbereich hinzu
+        headingElement.appendChild(deleteBtn);
+      }
+      // NEUER CODE ENDE
     }
   } else {
     // Remove heading if it exists but heading is null
@@ -203,7 +228,9 @@ export function _drawMessage(
       let processedContent = content;
       processedContent = convertImageTags(processedContent);
       processedContent = convertImgFilePaths(processedContent);
-      processedContent = marked.parse(processedContent, { breaks: true });
+      processedContent = marked.parse(processedContent, {
+        breaks: true
+      });
       processedContent = convertPathsToLinks(processedContent);
       processedContent = addBlankTargetsToLinks(processedContent);
 
@@ -325,7 +352,10 @@ export function drawMessageAgent(
 ) {
   let kvpsFlat = null;
   if (kvps) {
-    kvpsFlat = { ...kvps, ...(kvps["tool_args"] || {}) };
+    kvpsFlat = {
+      ...kvps,
+      ...(kvps["tool_args"] || {})
+    };
     delete kvpsFlat["tool_args"];
   }
 
@@ -422,6 +452,22 @@ export function drawMessageUser(
   }
   headingElement.innerHTML = `${heading} <span class='icon material-symbols-outlined'>person</span>`;
 
+  // NEUER CODE START - Löschen-Button für User-Nachrichten
+  let deleteBtn = headingElement.querySelector(".msg-delete-btn");
+  if (!deleteBtn) {
+    deleteBtn = document.createElement("a");
+    deleteBtn.href = "#";
+    deleteBtn.className = "msg-delete-btn";
+    deleteBtn.innerHTML = `<span class="material-symbols-outlined">close</span>`;
+    deleteBtn.onclick = function(event) {
+      event.preventDefault();
+      deleteMessage(messageContainer.id);
+    };
+    // Fügt den Button dem Kopfbereich hinzu
+    headingElement.appendChild(deleteBtn);
+  }
+  // NEUER CODE ENDE
+
   // Handle content
   let textDiv = messageDiv.querySelector(".message-text");
   if (content && content.trim().length > 0) {
@@ -450,7 +496,7 @@ export function drawMessageUser(
       messageDiv.appendChild(attachmentsContainer);
     }
     // Important: Clear existing attachments to re-render, preventing duplicates on update
-    attachmentsContainer.innerHTML = ""; 
+    attachmentsContainer.innerHTML = "";
 
     kvps.attachments.forEach((attachment) => {
       const attachmentDiv = document.createElement("div");
@@ -697,7 +743,7 @@ function drawKvps(container, kvps, latex) {
       row.classList.add("kvps-row");
       if (key === "thoughts" || key === "reasoning")
         // TODO: find a better way to determine special class assignment
-        row.classList.add("msg-thoughts");
+      row.classList.add("msg-thoughts");
 
       const th = row.insertCell();
       th.textContent = convertToTitleCase(key);
@@ -864,7 +910,7 @@ function drawKvpsIncremental(container, kvps, latex) {
         // Add action buttons to the row
         // const row = tdiv.closest(".kvps-row");
         // if (row) {
-          // addActionButtonsToElement(pre);
+        // addActionButtonsToElement(pre);
         // }
 
         // KaTeX rendering for markdown
@@ -888,11 +934,11 @@ function drawKvpsIncremental(container, kvps, latex) {
 
 function convertToTitleCase(str) {
   return str
-    .replace(/_/g, " ") // Replace underscores with spaces
-    .toLowerCase() // Convert the entire string to lowercase
-    .replace(/\b\w/g, function (match) {
-      return match.toUpperCase(); // Capitalize the first letter of each word
-    });
+  .replace(/_/g, " ") // Replace underscores with spaces
+  .toLowerCase() // Convert the entire string to lowercase
+  .replace(/\b\w/g, function (match) {
+    return match.toUpperCase(); // Capitalize the first letter of each word
+  });
 }
 
 function convertImageTags(content) {
@@ -967,14 +1013,14 @@ function convertPathsToLinks(str) {
   const tagRegex = /(<(?:[^<>"']+|"[^"]*"|'[^']*')*>)/g;
 
   return str
-    .split(tagRegex) // keep tags & text separate
-    .map((chunk) => {
-      // if it *starts* with '<', it's a tag -> leave untouched
-      if (chunk.startsWith("<")) return chunk;
-      // otherwise run your link-generation
-      return chunk.replace(pathRegex, generateLinks);
-    })
-    .join("");
+  .split(tagRegex) // keep tags & text separate
+  .map((chunk) => {
+    // if it *starts* with '<', it's a tag -> leave untouched
+    if (chunk.startsWith("<")) return chunk;
+    // otherwise run your link-generation
+    return chunk.replace(pathRegex, generateLinks);
+  })
+  .join("");
 }
 
 function adjustMarkdownRender(element) {
@@ -1000,11 +1046,20 @@ class Scroller {
     const scrollHeight = this.element.scrollHeight;
     const clientHeight = this.element.clientHeight;
     const distanceFromBottom =
-      scrollHeight - this.element.scrollTop - clientHeight;
+    scrollHeight - this.element.scrollTop - clientHeight;
     return distanceFromBottom <= tolerance;
   }
 
   reApplyScroll() {
     if (this.wasAtBottom) this.element.scrollTop = this.element.scrollHeight;
+  }
+}
+
+// Funktion zum visuellen Löschen einer Nachricht
+function deleteMessage(messageContainerId) {
+  const messageContainer = document.getElementById(messageContainerId);
+  if (messageContainer) {
+    // Blendet die Nachricht aus, anstatt sie wirklich zu löschen
+    messageContainer.style.display = 'none';
   }
 }
